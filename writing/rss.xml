@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Joshua Spragge — Writing</title>
+    <link>https://joshuas-yyc.github.io/writing/</link>
+    <description>Long-form notes on research, systems, and tooling.</description>
+    <language>en-us</language>
+    <atom:link href="https://joshuas-yyc.github.io/writing/rss.xml" rel="self" type="application/rss+xml"/>
+
+    <!--
+      Add an <item> block for each post when published:
+
+      <item>
+        <title>Title of piece</title>
+        <link>https://joshuas-yyc.github.io/writing/slug-here/</link>
+        <guid isPermaLink="true">https://joshuas-yyc.github.io/writing/slug-here/</guid>
+        <pubDate>Wed, 01 Jun 2026 00:00:00 +0000</pubDate>
+        <description>One-sentence summary.</description>
+      </item>
+    -->
+
+  </channel>
+</rss>

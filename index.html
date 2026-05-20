@@ -1,120 +1,1375 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Joshua Spragge — research, tooling, and creative systems.">
+  <meta name="description" content="Joshua Spragge — Independent builder. Research, tooling, music, and creative systems.">
   <title>Joshua Spragge</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="alternate" type="application/rss+xml" title="Joshua Spragge — Writing" href="/writing/rss.xml">
+  <style>
+
+    /* === Tokens ============================================================ */
+    :root {
+      --bg:        #ffffff;
+      --surface:   #f5f5f5;
+      --text-1:    #1a1a1a;
+      --text-2:    #666666;
+      --border:    #e0e0e0;
+      --accent:    #000000;
+
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+
+      --display: clamp(3.5rem, 13vw, 10rem);
+      --h2:      clamp(1.5rem, 3vw, 2.25rem);
+
+      --side-pad:   clamp(1.5rem, 5vw, 5rem);
+      --section-y:  5rem;
+      --header-h:   3rem;
+      --dock-h:     3.5rem;
+    }
+
+    [data-theme="dark"] {
+      --bg:      #0a0a0a;
+      --surface: #161616;
+      --text-1:  #f5f5f5;
+      --text-2:  #b0b0b0;
+      --border:  #2a2a2a;
+      --accent:  #ffffff;
+    }
+
+
+    /* === Reset ============================================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-1);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s ease, color 0.2s ease;
+      overflow: hidden;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+      transition: opacity 0.15s;
+    }
+    a:hover { opacity: 0.6; }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Screen-reader only utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+
+    /* === Header ============================================================ */
+    #site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-h);
+      z-index: 200;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .header-inner {
+      height: 100%;
+      padding-inline: var(--side-pad);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-mark {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-2);
+      user-select: none;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .palette-hint {
+      font-size: 0.7rem;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .palette-hint kbd {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.1em 0.35em;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--surface);
+      color: var(--text-2);
+    }
+
+    #theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, color 0.15s;
+    }
+    #theme-toggle:hover {
+      background: var(--surface);
+      color: var(--text-1);
+    }
+    #theme-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+
+    /* === Progress nav (right edge) ======================================== */
+    #progress-nav {
+      position: fixed;
+      right: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 150;
+    }
+
+    #progress-nav ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    #progress-nav li {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .progress-dot {
+      position: relative;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      border: none;
+      padding: 0;
+      background: var(--border);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .progress-dot.active {
+      background: var(--text-1);
+      transform: scale(1.6);
+    }
+
+    .progress-dot:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* Hover tooltip label */
+    .dot-label {
+      position: absolute;
+      right: calc(100% + 0.6rem);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.6rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+
+    #progress-nav li:hover .dot-label,
+    .progress-dot:focus-visible + .dot-label {
+      opacity: 1;
+    }
+
+
+    /* === Scroll root ======================================================= */
+    #scroll-root {
+      position: fixed;
+      top: var(--header-h);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      scroll-padding-top: 0;
+    }
+
+    /* Dock visible: shrink bottom so content isn't clipped */
+    body.dock-active #scroll-root {
+      bottom: var(--dock-h);
+    }
+
+
+    /* === Sections ========================================================== */
+    section {
+      min-height: 100%;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Landmark: fills most of the visible area, heading sits near the bottom */
+    .section-landmark {
+      flex: 0 0 auto;
+      min-height: 65vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 2rem var(--side-pad) 2.5rem;
+    }
+
+    .display-heading {
+      font-size: var(--display);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+      color: var(--text-1);
+    }
+
+    .section-content {
+      flex: 1 1 auto;
+      padding: 0 var(--side-pad) var(--section-y);
+    }
+
+    .container {
+      max-width: 960px;
+    }
+
+
+    /* === Home ============================================================== */
+    #home .section-landmark { border-bottom: none; }
+
+    .home-tagline {
+      font-size: 1rem;
+      color: var(--text-2);
+      max-width: 55ch;
+      margin-bottom: 2rem;
+      line-height: 1.65;
+    }
+
+    .home-anchors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1.75rem;
+    }
+
+    .home-anchors a {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .home-anchors a:hover {
+      color: var(--text-1);
+      opacity: 1;
+    }
+
+
+    /* === Tools ============================================================= */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .tool-card {
+      background: var(--bg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: background 0.15s;
+    }
+    .tool-card:hover { background: var(--surface); }
+
+    .tool-status {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    .tool-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text-1);
+    }
+
+    .tool-card p {
+      font-size: 0.875rem;
+      color: var(--text-2);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .tool-link {
+      font-size: 0.8rem;
+      color: var(--text-2);
+      text-decoration: none;
+      margin-top: 0.5rem;
+      transition: color 0.15s;
+    }
+    .tool-link:hover {
+      color: var(--text-1);
+      opacity: 1;
+    }
+
+
+    /* === Music ============================================================= */
+    .music-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .music-track {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: var(--surface);
+    }
+
+    .track-title {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .track-meta {
+      font-size: 0.8rem;
+      color: var(--text-2);
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    .track-audio {
+      width: 100%;
+      height: 2rem;
+      accent-color: var(--accent);
+    }
+
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--text-2);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.85rem;
+      align-self: flex-start;
+      transition: background 0.15s, color 0.15s;
+    }
+    .download-link:hover {
+      background: var(--bg);
+      color: var(--text-1);
+      opacity: 1;
+    }
+
+
+    /* === Research ========================================================== */
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-pill {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.85rem;
+      border-radius: 2rem;
+      transition: all 0.15s;
+    }
+    .filter-pill:hover {
+      background: var(--surface);
+      color: var(--text-1);
+    }
+    .filter-pill.active {
+      background: var(--text-1);
+      border-color: var(--text-1);
+      color: var(--bg);
+    }
+    .filter-pill:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .research-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .research-post {
+      padding-block: 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .research-post:first-child { border-top: 1px solid var(--border); }
+
+    .post-date {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .post-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.6rem;
+      line-height: 1.35;
+    }
+
+    .post-excerpt {
+      font-size: 0.9rem;
+      color: var(--text-2);
+      line-height: 1.7;
+      max-width: 65ch;
+      margin-bottom: 0.75rem;
+    }
+
+    .post-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .post-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.55rem;
+      border-radius: 2px;
+    }
+
+
+    /* === Contact =========================================================== */
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .contact-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .contact-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    .contact-item a {
+      font-size: 0.95rem;
+      color: var(--text-1);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .contact-item a:hover {
+      color: var(--text-2);
+      opacity: 1;
+    }
+
+    .contact-note {
+      font-size: 0.875rem;
+      color: var(--text-2);
+    }
+
+
+    /* === Command palette =================================================== */
+    #palette-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 500;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 15vh;
+    }
+    #palette-overlay[hidden] { display: none; }
+
+    #palette {
+      width: min(560px, calc(100vw - 2rem));
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    #palette-input {
+      display: block;
+      width: 100%;
+      padding: 1rem 1.25rem;
+      font-size: 1rem;
+      font-family: var(--font);
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-1);
+      outline: none;
+    }
+    #palette-input::placeholder { color: var(--text-2); }
+
+    #palette-results {
+      list-style: none;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    #palette-results li {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    #palette-results li:hover,
+    #palette-results li[aria-selected="true"] {
+      background: var(--surface);
+    }
+
+    .result-type {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      flex-shrink: 0;
+      width: 4.5rem;
+    }
+
+    .result-title {
+      font-size: 0.875rem;
+      color: var(--text-1);
+    }
+
+    .result-meta {
+      font-size: 0.75rem;
+      color: var(--text-2);
+      margin-left: auto;
+    }
+
+    #palette-empty {
+      padding: 1.25rem;
+      font-size: 0.875rem;
+      color: var(--text-2);
+      text-align: center;
+    }
+
+    #palette-footer {
+      display: flex;
+      gap: 1.25rem;
+      padding: 0.6rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    #palette-footer span {
+      font-size: 0.65rem;
+      color: var(--text-2);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    #palette-footer kbd {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      padding: 0.1em 0.3em;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: var(--bg);
+      color: var(--text-2);
+    }
+
+
+    /* === Music dock ======================================================== */
+    #music-dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--dock-h);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-inline: var(--side-pad);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    #music-dock[hidden] { display: none; }
+
+    #dock-title {
+      font-size: 0.8rem;
+      color: var(--text-1);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 0 0 auto;
+      max-width: 160px;
+    }
+
+    #dock-playpause {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #dock-playpause:hover {
+      background: var(--bg);
+    }
+    #dock-playpause:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    #dock-time {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-2);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    #dock-scrubber {
+      flex: 1 1 auto;
+      min-width: 60px;
+      height: 3px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    #dock-close {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 0 0.25rem;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    #dock-close:hover { color: var(--text-1); }
+    #dock-close:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+
+    /* === Focus rings ======================================================= */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+
+    /* === Reduced motion ==================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      #scroll-root {
+        scroll-snap-type: none;
+        scroll-behavior: auto;
+      }
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+
+
+    /* === Mobile ============================================================ */
+    @media (max-width: 640px) {
+      :root {
+        --side-pad: 1.5rem;
+        --section-y: 3rem;
+      }
+
+      .palette-hint { display: none; }
+
+      #progress-nav { display: none; }
+
+      .section-landmark { min-height: 55vh; }
+
+      .tools-grid { grid-template-columns: 1fr; }
+
+      .music-grid { grid-template-columns: 1fr; }
+
+      #dock-time { display: none; }
+
+      #dock-title { max-width: 100px; }
+    }
+
+  </style>
 </head>
 <body>
 
-  <!-- ── Navigation ─────────────────────────────────────────── -->
-  <header class="site-header">
-    <nav class="nav" aria-label="Site navigation">
-      <span class="nav-mark">JS</span>
-      <ul class="nav-links">
-        <li><a href="#work">Work</a></li>
-        <li><a href="#systems">Systems</a></li>
-        <li><a href="#output">Output</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header id="site-header">
+    <div class="header-inner">
+      <span class="header-mark" aria-hidden="true">JS</span>
+      <div class="header-right">
+        <span class="palette-hint" aria-hidden="true">Press <kbd>/</kbd></span>
+        <button id="theme-toggle" aria-label="Toggle colour theme">Dark</button>
+      </div>
+    </div>
   </header>
 
-  <main>
+  <!-- ── Progress nav ────────────────────────────────────────────────────── -->
+  <nav id="progress-nav" aria-label="Section navigation">
+    <ul>
+      <li>
+        <button class="progress-dot active" data-target="home" aria-label="Go to Home">
+          <span class="dot-label" aria-hidden="true">Home</span>
+        </button>
+      </li>
+      <li>
+        <button class="progress-dot" data-target="tools" aria-label="Go to Tools">
+          <span class="dot-label" aria-hidden="true">Tools</span>
+        </button>
+      </li>
+      <li>
+        <button class="progress-dot" data-target="music" aria-label="Go to Music">
+          <span class="dot-label" aria-hidden="true">Music</span>
+        </button>
+      </li>
+      <li>
+        <button class="progress-dot" data-target="research" aria-label="Go to Research">
+          <span class="dot-label" aria-hidden="true">Research</span>
+        </button>
+      </li>
+      <li>
+        <button class="progress-dot" data-target="contact" aria-label="Go to Contact">
+          <span class="dot-label" aria-hidden="true">Contact</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
 
-    <!-- ── Hero ───────────────────────────────────────────────── -->
-    <section id="hero" class="hero">
-      <div class="container">
-        <h1>Joshua Spragge</h1>
-        <p class="tagline">Independent builder. Research, tooling, and creative systems.</p>
-        <p class="status">
-          <span class="status-dot" aria-hidden="true"></span>
-          Clean baseline — no active projects
-        </p>
+  <!-- ── Scroll root ─────────────────────────────────────────────────────── -->
+  <main id="scroll-root">
+
+    <!-- Home -->
+    <section id="home">
+      <div class="section-landmark">
+        <h1 class="display-heading">Joshua<br>Spragge</h1>
+      </div>
+      <div class="section-content">
+        <p class="home-tagline">Independent builder. Research, tooling, music, and creative systems.</p>
+        <nav class="home-anchors" aria-label="Jump to section">
+          <a href="#tools">Tools</a>
+          <a href="#music">Music</a>
+          <a href="#research">Research</a>
+          <a href="#contact">Contact</a>
+        </nav>
       </div>
     </section>
 
-    <!-- ── Current Work ────────────────────────────────────────── -->
-    <section id="work" class="section">
-      <div class="container">
-        <h2 class="section-label">Current Work</h2>
-        <ul class="work-list">
-          <li>
-            <span class="work-title">Research infrastructure</span>
-            <span class="work-desc">Building tools and processes for structured investigative and analytical work.</span>
-          </li>
-          <li>
-            <span class="work-title">Tooling experiments</span>
-            <span class="work-desc">Standalone utilities built to solve specific, scoped problems — no frameworks, no permanence.</span>
-          </li>
-          <li>
-            <span class="work-title">Creative output</span>
-            <span class="work-desc">Music production and written work treated as discrete, archivable artifacts.</span>
-          </li>
-          <li>
-            <span class="work-title">Systems design</span>
-            <span class="work-desc">Minimal operational frameworks for managing information and work without accumulation.</span>
-          </li>
-        </ul>
+    <!-- Tools -->
+    <section id="tools">
+      <div class="section-landmark">
+        <h2 class="display-heading">Tools</h2>
       </div>
-    </section>
+      <div class="section-content">
+        <div class="container">
+          <div class="tools-grid">
 
-    <!-- ── Systems ─────────────────────────────────────────────── -->
-    <section id="systems" class="section">
-      <div class="container">
-        <h2 class="section-label">Systems</h2>
-        <p class="body-text">
-          All work runs through four discrete layers: raw intake, compressed archive, current workspace, and governance rules. Nothing is permanently active. Every item terminates or archives. The operating model favors signal density over completeness, reversibility over speed, and explicit state over implicit continuity.
-        </p>
-      </div>
-    </section>
+            <article class="tool-card">
+              <div class="tool-status">In Development</div>
+              <h3>Project Name</h3>
+              <p>Brief description of what this tool does and the problem it solves. Keep it focused and specific.</p>
+              <a class="tool-link" href="https://github.com/joshuas-yyc" target="_blank" rel="noopener noreferrer">View on GitHub →</a>
+            </article>
 
-    <!-- ── Output ──────────────────────────────────────────────── -->
-    <section id="output" class="section">
-      <div class="container">
-        <h2 class="section-label">Output</h2>
-        <div class="output-grid" role="list">
+            <article class="tool-card">
+              <div class="tool-status">In Development</div>
+              <h3>Project Name</h3>
+              <p>Brief description of what this tool does and the problem it solves. Keep it focused and specific.</p>
+              <a class="tool-link" href="https://github.com/joshuas-yyc" target="_blank" rel="noopener noreferrer">View on GitHub →</a>
+            </article>
 
-          <!-- Replace each card with real output when available -->
-          <article class="output-card output-card--empty" role="listitem">
-            <span class="card-type">—</span>
-            <span class="card-title">Nothing published yet</span>
-          </article>
-          <article class="output-card output-card--empty" role="listitem">
-            <span class="card-type">—</span>
-            <span class="card-title">Placeholder</span>
-          </article>
-          <article class="output-card output-card--empty" role="listitem">
-            <span class="card-type">—</span>
-            <span class="card-title">Placeholder</span>
-          </article>
+            <article class="tool-card">
+              <div class="tool-status">In Development</div>
+              <h3>Project Name</h3>
+              <p>Brief description of what this tool does and the problem it solves. Keep it focused and specific.</p>
+              <a class="tool-link" href="https://github.com/joshuas-yyc" target="_blank" rel="noopener noreferrer">View on GitHub →</a>
+            </article>
 
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ── Contact ─────────────────────────────────────────────── -->
-    <section id="contact" class="section">
-      <div class="container">
-        <h2 class="section-label">Contact</h2>
-        <ul class="contact-list">
-          <li><a href="mailto:joshuas.yyc@gmail.com">joshuas.yyc@gmail.com</a></li>
-          <li><a href="https://github.com/joshuas-yyc" target="_blank" rel="noopener noreferrer">github.com/joshuas-yyc</a></li>
-        </ul>
+    <!-- Music -->
+    <section id="music">
+      <div class="section-landmark">
+        <h2 class="display-heading">Music</h2>
+      </div>
+      <div class="section-content">
+        <div class="container">
+          <div class="music-grid">
+
+            <article class="music-track">
+              <div>
+                <div class="track-title">Track Title</div>
+                <div class="track-meta">Album Name · 2026</div>
+              </div>
+              <audio class="track-audio" controls preload="none">
+                <source src="/path/to/audio.mp3" type="audio/mpeg">
+                Your browser does not support audio playback.
+              </audio>
+              <a class="download-link" href="/path/to/audio.mp3" download>↓ Download</a>
+            </article>
+
+            <article class="music-track">
+              <div>
+                <div class="track-title">Track Title</div>
+                <div class="track-meta">Album Name · 2026</div>
+              </div>
+              <audio class="track-audio" controls preload="none">
+                <source src="/path/to/audio.mp3" type="audio/mpeg">
+                Your browser does not support audio playback.
+              </audio>
+              <a class="download-link" href="/path/to/audio.mp3" download>↓ Download</a>
+            </article>
+
+          </div>
+        </div>
       </div>
     </section>
 
-  </main>
+    <!-- Research -->
+    <section id="research">
+      <div class="section-landmark">
+        <h2 class="display-heading">Research</h2>
+      </div>
+      <div class="section-content">
+        <div class="container">
 
-  <!-- ── Footer ──────────────────────────────────────────────── -->
-  <footer class="site-footer">
-    <div class="container">
-      <span>Joshua Spragge</span>
-      <span>2026</span>
+          <div class="filter-pills" role="group" aria-label="Filter essays by tag">
+            <button class="filter-pill active" data-tag="all" aria-pressed="true">All</button>
+            <button class="filter-pill" data-tag="systems" aria-pressed="false">Systems</button>
+            <button class="filter-pill" data-tag="design" aria-pressed="false">Design</button>
+            <button class="filter-pill" data-tag="music" aria-pressed="false">Music</button>
+            <button class="filter-pill" data-tag="research" aria-pressed="false">Research</button>
+          </div>
+
+          <div class="research-list" role="list">
+
+            <article class="research-post" data-tags="systems,design" role="listitem">
+              <time class="post-date" datetime="2026-05-15">May 15, 2026</time>
+              <h3 class="post-title">Working Title: Essay on Systems Design</h3>
+              <p class="post-excerpt">Opening paragraph or excerpt. A brief summary or hook to draw the reader into the full piece.</p>
+              <div class="post-tags" aria-label="Tags">
+                <span class="post-tag">systems</span>
+                <span class="post-tag">design</span>
+              </div>
+            </article>
+
+            <article class="research-post" data-tags="research" role="listitem">
+              <time class="post-date" datetime="2026-04-28">April 28, 2026</time>
+              <h3 class="post-title">Working Title: Research Findings</h3>
+              <p class="post-excerpt">Opening paragraph or excerpt. A brief summary or hook to draw the reader into the full piece.</p>
+              <div class="post-tags" aria-label="Tags">
+                <span class="post-tag">research</span>
+              </div>
+            </article>
+
+            <article class="research-post" data-tags="music,design" role="listitem">
+              <time class="post-date" datetime="2026-04-10">April 10, 2026</time>
+              <h3 class="post-title">Working Title: Music and Design Intersections</h3>
+              <p class="post-excerpt">Opening paragraph or excerpt. A brief summary or hook to draw the reader into the full piece.</p>
+              <div class="post-tags" aria-label="Tags">
+                <span class="post-tag">music</span>
+                <span class="post-tag">design</span>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <div class="section-landmark">
+        <h2 class="display-heading">Contact</h2>
+      </div>
+      <div class="section-content">
+        <div class="container">
+          <ul class="contact-list" role="list">
+            <li class="contact-item">
+              <span class="contact-label">Email</span>
+              <a href="mailto:joshuas.yyc@gmail.com">joshuas.yyc@gmail.com</a>
+            </li>
+            <li class="contact-item">
+              <span class="contact-label">Code</span>
+              <a href="https://github.com/joshuas-yyc" target="_blank" rel="noopener noreferrer">github.com/joshuas-yyc</a>
+            </li>
+            <li class="contact-item">
+              <span class="contact-label">Other</span>
+              <span class="contact-note">Other platform links go here.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- #scroll-root -->
+
+  <!-- ── Command palette ─────────────────────────────────────────────────── -->
+  <div id="palette-overlay" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+    <div id="palette" role="document">
+      <label for="palette-input" class="sr-only">Search sections, tools, tracks, and essays</label>
+      <input
+        id="palette-input"
+        type="text"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="Search sections, tools, tracks, essays…"
+      >
+      <ul id="palette-results" role="listbox" aria-label="Search results"></ul>
+      <p id="palette-empty" hidden>No results</p>
+      <div id="palette-footer" aria-hidden="true">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> jump</span>
+        <span><kbd>esc</kbd> close</span>
+      </div>
     </div>
-  </footer>
+  </div>
+
+  <!-- ── Music dock ──────────────────────────────────────────────────────── -->
+  <div id="music-dock" role="region" aria-label="Now playing" hidden>
+    <span id="dock-title" aria-live="polite"></span>
+    <button id="dock-playpause" aria-label="Play">▶</button>
+    <span id="dock-time" aria-live="off" aria-atomic="true">0:00 / 0:00</span>
+    <input id="dock-scrubber" type="range" min="0" max="100" value="0" step="0.5" aria-label="Playback position">
+    <button id="dock-close" aria-label="Stop and close player">×</button>
+  </div>
+
+
+  <script>
+
+    /* === Theme Toggle ====================================================== */
+    (function () {
+      var html    = document.documentElement;
+      var btn     = document.getElementById('theme-toggle');
+      var saved   = localStorage.getItem('theme');
+      var sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme   = saved || (sysDark ? 'dark' : 'light');
+
+      function applyTheme(t) {
+        html.dataset.theme = t;
+        btn.textContent    = t === 'dark' ? 'Light' : 'Dark';
+        btn.setAttribute('aria-label', 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' theme');
+        localStorage.setItem('theme', t);
+      }
+
+      applyTheme(theme);
+      btn.addEventListener('click', function () {
+        applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark');
+      });
+    })();
+
+
+    /* === Scroll Progress ================================================== */
+    (function () {
+      var root    = document.getElementById('scroll-root');
+      var dots    = Array.from(document.querySelectorAll('.progress-dot'));
+      var sectionIds = dots.map(function (d) { return d.dataset.target; });
+
+      function setActive(id) {
+        dots.forEach(function (d) {
+          d.classList.toggle('active', d.dataset.target === id);
+        });
+      }
+
+      /* IntersectionObserver: section top crosses a narrow band near viewport top */
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            setActive(entry.target.id);
+          }
+        });
+      }, {
+        root:       root,
+        rootMargin: '-5% 0px -90% 0px',
+        threshold:  0
+      });
+
+      sectionIds.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+
+      /* Click dot → scroll to section */
+      dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+          var el = document.getElementById(dot.dataset.target);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      /* Home anchor links inside scroll-root use native scrolling; smooth via CSS */
+    })();
+
+
+    /* === Command Palette ================================================== */
+    (function () {
+      /* Search index — update titles when you fill in real content */
+      var index = [
+        { type: 'section', title: 'Home',     target: 'home'     },
+        { type: 'section', title: 'Tools',    target: 'tools'    },
+        { type: 'section', title: 'Music',    target: 'music'    },
+        { type: 'section', title: 'Research', target: 'research' },
+        { type: 'section', title: 'Contact',  target: 'contact'  },
+        { type: 'tool',    title: 'Project Name',                                    target: 'tools',    meta: 'In Development' },
+        { type: 'tool',    title: 'Project Name',                                    target: 'tools',    meta: 'In Development' },
+        { type: 'tool',    title: 'Project Name',                                    target: 'tools',    meta: 'In Development' },
+        { type: 'track',   title: 'Track Title',                                     target: 'music',    meta: '2026'           },
+        { type: 'track',   title: 'Track Title',                                     target: 'music',    meta: '2026'           },
+        { type: 'essay',   title: 'Essay on Systems Design',                         target: 'research', meta: 'systems · design'  },
+        { type: 'essay',   title: 'Research Findings',                               target: 'research', meta: 'research'          },
+        { type: 'essay',   title: 'Music and Design Intersections',                  target: 'research', meta: 'music · design'    },
+      ];
+
+      var overlay    = document.getElementById('palette-overlay');
+      var input      = document.getElementById('palette-input');
+      var resultsList = document.getElementById('palette-results');
+      var emptyMsg   = document.getElementById('palette-empty');
+      var activeIdx  = -1;
+      var filtered   = [];
+
+      function open() {
+        overlay.hidden = false;
+        input.value = '';
+        render('');
+        input.focus();
+      }
+
+      function close() {
+        overlay.hidden = true;
+        activeIdx = -1;
+      }
+
+      function scrollTo(targetId) {
+        var el = document.getElementById(targetId);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function render(query) {
+        var q = query.trim().toLowerCase();
+        filtered = q
+          ? index.filter(function (item) {
+              return item.title.toLowerCase().includes(q)
+                  || item.type.toLowerCase().includes(q)
+                  || (item.meta && item.meta.toLowerCase().includes(q));
+            })
+          : index.slice();
+
+        resultsList.innerHTML = '';
+        emptyMsg.hidden = filtered.length > 0;
+
+        filtered.forEach(function (item, i) {
+          var li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-selected', 'false');
+          li.dataset.index = i;
+          li.innerHTML =
+            '<span class="result-type">' + item.type + '</span>' +
+            '<span class="result-title">' + item.title + '</span>' +
+            (item.meta ? '<span class="result-meta">' + item.meta + '</span>' : '');
+          li.addEventListener('click', function () {
+            scrollTo(item.target);
+            close();
+          });
+          resultsList.appendChild(li);
+        });
+
+        setActive(filtered.length > 0 ? 0 : -1);
+      }
+
+      function setActive(i) {
+        activeIdx = i;
+        var items = resultsList.querySelectorAll('li');
+        items.forEach(function (li, idx) {
+          li.setAttribute('aria-selected', idx === i ? 'true' : 'false');
+        });
+        if (i >= 0 && items[i]) {
+          items[i].scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      /* Keyboard: open with / or Cmd/Ctrl+K */
+      document.addEventListener('keydown', function (e) {
+        var active = document.activeElement;
+        var inField = active.tagName === 'INPUT' || active.tagName === 'TEXTAREA';
+
+        if (overlay.hidden) {
+          if (e.key === '/' && !inField) {
+            e.preventDefault();
+            open();
+          }
+          if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            open();
+          }
+        } else {
+          if (e.key === 'Escape') {
+            close();
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActive(Math.min(activeIdx + 1, filtered.length - 1));
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActive(Math.max(activeIdx - 1, 0));
+          } else if (e.key === 'Enter') {
+            if (activeIdx >= 0 && filtered[activeIdx]) {
+              scrollTo(filtered[activeIdx].target);
+              close();
+            }
+          }
+        }
+      });
+
+      input.addEventListener('input', function () { render(input.value); });
+
+      /* Click backdrop to close */
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) close();
+      });
+    })();
+
+
+    /* === Music Dock ======================================================= */
+    (function () {
+      var dock         = document.getElementById('music-dock');
+      var dockTitle    = document.getElementById('dock-title');
+      var dockBtn      = document.getElementById('dock-playpause');
+      var dockScrubber = document.getElementById('dock-scrubber');
+      var dockTime     = document.getElementById('dock-time');
+      var dockClose    = document.getElementById('dock-close');
+      var audios       = Array.from(document.querySelectorAll('audio.track-audio'));
+      var current      = null;
+      var scrubbing    = false;
+
+      function formatTime(s) {
+        if (!isFinite(s)) return '0:00';
+        var m = Math.floor(s / 60);
+        var sec = Math.floor(s % 60);
+        return m + ':' + (sec < 10 ? '0' : '') + sec;
+      }
+
+      function showDock(audio, title) {
+        current = audio;
+        dockTitle.textContent = title;
+        dock.hidden = false;
+        document.body.classList.add('dock-active');
+        dockBtn.textContent = '⏸';
+        dockBtn.setAttribute('aria-label', 'Pause');
+      }
+
+      function hideDock() {
+        dock.hidden = true;
+        document.body.classList.remove('dock-active');
+        current = null;
+      }
+
+      function syncScrubber() {
+        if (!current || !current.duration || scrubbing) return;
+        dockScrubber.value = (current.currentTime / current.duration) * 100;
+        dockTime.textContent = formatTime(current.currentTime) + ' / ' + formatTime(current.duration);
+      }
+
+      audios.forEach(function (audio) {
+        var trackCard  = audio.closest('.music-track');
+        var trackName  = trackCard ? trackCard.querySelector('.track-title').textContent : 'Track';
+
+        audio.addEventListener('play', function () {
+          /* Stop all others */
+          audios.forEach(function (a) {
+            if (a !== audio) { a.pause(); a.currentTime = 0; }
+          });
+          showDock(audio, trackName);
+        });
+
+        audio.addEventListener('pause', function () {
+          if (audio === current) {
+            dockBtn.textContent = '▶';
+            dockBtn.setAttribute('aria-label', 'Play');
+          }
+        });
+
+        audio.addEventListener('ended', function () {
+          if (audio === current) {
+            dockBtn.textContent = '▶';
+            dockBtn.setAttribute('aria-label', 'Play');
+          }
+        });
+
+        audio.addEventListener('timeupdate', function () {
+          if (audio === current) syncScrubber();
+        });
+
+        audio.addEventListener('loadedmetadata', function () {
+          if (audio === current) syncScrubber();
+        });
+      });
+
+      dockBtn.addEventListener('click', function () {
+        if (!current) return;
+        if (current.paused) {
+          current.play();
+        } else {
+          current.pause();
+        }
+      });
+
+      dockScrubber.addEventListener('mousedown',  function () { scrubbing = true;  });
+      dockScrubber.addEventListener('touchstart', function () { scrubbing = true;  }, { passive: true });
+      dockScrubber.addEventListener('input', function () {
+        if (current && current.duration) {
+          current.currentTime = (dockScrubber.value / 100) * current.duration;
+          dockTime.textContent = formatTime(current.currentTime) + ' / ' + formatTime(current.duration);
+        }
+      });
+      dockScrubber.addEventListener('mouseup',  function () { scrubbing = false; });
+      dockScrubber.addEventListener('touchend', function () { scrubbing = false; });
+
+      dockClose.addEventListener('click', function () {
+        if (current) { current.pause(); current.currentTime = 0; }
+        hideDock();
+      });
+    })();
+
+
+    /* === Tag Filter ======================================================= */
+    (function () {
+      var pills = Array.from(document.querySelectorAll('.filter-pill'));
+      var posts = Array.from(document.querySelectorAll('.research-post'));
+
+      pills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          pills.forEach(function (p) {
+            p.classList.remove('active');
+            p.setAttribute('aria-pressed', 'false');
+          });
+          pill.classList.add('active');
+          pill.setAttribute('aria-pressed', 'true');
+
+          var tag = pill.dataset.tag;
+          posts.forEach(function (post) {
+            var tags = post.dataset.tags.split(',');
+            post.hidden = !(tag === 'all' || tags.includes(tag));
+          });
+        });
+      });
+    })();
+
+
+    /* === Anchor navigation (Home links → scroll container) ================ */
+    (function () {
+      var root = document.getElementById('scroll-root');
+      document.querySelectorAll('.home-anchors a').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          var id = a.getAttribute('href').slice(1);
+          var target = document.getElementById(id);
+          if (target && root) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    })();
+
+  </script>
 
 </body>
 </html>
